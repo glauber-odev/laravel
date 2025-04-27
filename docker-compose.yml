@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Serviço da aplicação Laravel
+  app:
+    build: .
+    container_name: laravel-app
+    ports:
+      - "8000:80" # Mapeia a porta 80 do contêiner para a porta 8000 do host
+    volumes:
+      - .:/var/www/html  # Mapeia o diretório atual (código fonte) para o diretório do contêiner
+    networks:
+      - laravel-network
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=laravel_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=root_password
+
+  # Serviço de banco de dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: laravel_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root_password
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - laravel-network
+    ports:
+      - "3306:3306"  # Mapeia a porta 3306 do MySQL para o host
+
+# Volumes para persistência de dados
+volumes:
+  db-data:
+
+# Redes para comunicação entre os serviços
+networks:
+  laravel-network:
+    driver: bridge
