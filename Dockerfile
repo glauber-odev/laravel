@@ -1,11 +1,8 @@
-# Use uma imagem base com PHP e Apache
+# Usar uma imagem oficial do PHP com Apache
 FROM php:8.1-apache
 
-# Defina o diretório de trabalho
+# Definir o diretório de trabalho dentro do contêiner
 WORKDIR /var/www/html
-
-# Habilite os módulos do Apache necessários
-RUN a2enmod rewrite
 
 # Instalar dependências do sistema e extensões do PHP
 RUN apt-get update && apt-get install -y \
@@ -18,29 +15,26 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd \
     && docker-php-ext-install pdo pdo_mysql
 
-# Instalar o Composer
+# Habilitar mod_rewrite no Apache
+RUN a2enmod rewrite
+
+# Instalar o Composer globalmente
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copiar os arquivos da aplicação Laravel para o contêiner
 COPY . /var/www/html
 
-# Instalar dependências do Laravel via Composer
+# Rodar o Composer para instalar as dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Definir as permissões corretas para as pastas de armazenamento e cache
+# Ajustar permissões para as pastas de cache e armazenamento
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Defina as variáveis de ambiente, como APP_KEY (se necessário) e DB_CONNECTION
+# Definir a variável de ambiente APP_KEY, caso necessário
 ENV APP_KEY=base64:your_app_key_here
-ENV DB_CONNECTION=mysql
-ENV DB_HOST=localhost
-ENV DB_PORT=3306
-ENV DB_DATABASE=your_database
-ENV DB_USERNAME=your_username
-ENV DB_PASSWORD=your_password
 
-# Expõe a porta 80 para o Apache
+# Expor a porta 80 do contêiner
 EXPOSE 80
 
-# Comando para iniciar o Apache
+# Iniciar o Apache no primeiro plano
 CMD ["apache2-foreground"]
